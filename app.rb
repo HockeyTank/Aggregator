@@ -31,4 +31,27 @@ contentsArray.each do |link|
   i = i + 1
 end
 
+#Grab the file, and fetch each rink's markup, distill to only the rink info, and save it
+files = Dir.entries('data/')
 
+files.each do |file|
+  f = File.open('data/' << file, 'r')
+  doc = Nokogiri::HTML(f.read())
+ 
+  rinklinks = Array.new
+
+  doc.css('a').each do |node|
+   node['href'].each do |link|
+     rinklinks.push(link)
+   end
+  end
+
+  rinklinks.each do |rink|
+    #cast the string as a URI 
+    uri = URI(rink) 
+    #load the URI contents into a nokogiri html doc
+    doc = Nokogiri::HTML(Net::HTTP.get(uri))
+    puts doc.css("#locationBasicInfo")
+  end
+
+end
