@@ -35,23 +35,29 @@ end
 files = Dir.entries('data/')
 
 files.each do |file|
-  f = File.open('data/' << file, 'r')
-  doc = Nokogiri::HTML(f.read())
- 
-  rinklinks = Array.new
+  unless File.directory?(file) then
+    f = File.open('data/' << file, 'r')
+    doc = Nokogiri::HTML(f.read())
+   
+    rinklinks = Array.new
 
-  doc.css('a').each do |node|
-   node['href'].each do |link|
-     rinklinks.push(link)
-   end
+    doc.css('a').each do |node|
+     #node['href'].each do |link|
+     node['href'].split('\n').each do |link|
+       link = "http://www.rinktime.com/" << link
+       rinklinks.push(link)
+     end
+    end
+
+    rinklinks.each do |rink|
+      #cast the string as a URI 
+      uri = URI(rink) 
+      #load the URI contents into a nokogiri html doc
+      doc = Nokogiri::HTML(Net::HTTP.get(uri))
+      addressbook = File.open('rinks.html', 'a+')
+      addressbook.write(doc.css("#locationName")) 
+      addressbook.write(doc.css("#locationBasicInfo"))
+      end
+    end
   end
 
-  rinklinks.each do |rink|
-    #cast the string as a URI 
-    uri = URI(rink) 
-    #load the URI contents into a nokogiri html doc
-    doc = Nokogiri::HTML(Net::HTTP.get(uri))
-    puts doc.css("#locationBasicInfo")
-  end
-
-end
