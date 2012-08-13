@@ -48,23 +48,31 @@ files.each do |file|
        rinklinks.push(link)
      end
     end
-
+    
+    addressbook = File.open('rinks.csv', 'a+')
     rinklinks.each do |rink|
       #cast the string as a URI 
       uri = URI(rink) 
       #load the URI contents into a nokogiri html doc
       doc = Nokogiri::HTML(Net::HTTP.get(uri))
-      addressbook = File.open('rinks.csv', 'a+')
-       if (doc.css("#LocationAddress1") != nil) then
-        addressbook.write(doc.css("#locationName").inner_text << "|") 
-        addressbook.write(doc.css("#LocationAddress1").inner_text << "|")
-        #captured data is in the following format:  Phoenix, AZ 85050
-        #we need to split city, state and zip - the following block accomplishes that
-        location =  doc.css("#LocationCityStateZip").inner_text.split(',')
-        loc2 = location[1].split(' ')
-        addressbook.write(location[0] << "|" << loc2[0] << "|" << loc2[1] << "|")
-        addressbook.write(doc.css("#LocationPhone").inner_text << "\r\n")
-       end
+        if (doc.css("#LocationAddress1") != nil and 
+           doc.css("#LocationName") != nil and 
+           doc.css("#LocationCityStateZip") != nil) then
+        
+          begin
+          addressbook.write(doc.css("#locationName").inner_text << "|") 
+          addressbook.write(doc.css("#LocationAddress1").inner_text << "|")
+          #captured data is in the following format:  Phoenix, AZ 85050
+          #we need to split city, state and zip - the following block accomplishes that
+          location =  doc.css("#LocationCityStateZip").inner_text.split(',')
+          loc2 = location[1].split(' ')
+          addressbook.write(location[0] << "|" << loc2[0] << "|" << loc2[1] << "|")
+          addressbook.write(doc.css("#LocationPhone").inner_text << "\r\n")
+          rescue
+          #nothing to do here
+          end
+
+        end
      end
     end
   end
